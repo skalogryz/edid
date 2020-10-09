@@ -15,9 +15,16 @@ function GetIdByMonitorIdAndDriver(const MonitorId, Driver: string; var edid: TE
 // and driver "{4d36e96e-e325-11ce-bfc1-08002be10318}\0001"
 function SplitDisplayDeviceId(const DeviceID: string; out monId, drv : string): Boolean;
 // splits MonitorId and calls for GetIdByMonitorIdAndDriver
-function GetMonitorDeviceId(const MonitorId: string; var edid: TEDIDRec): Boolean;
+function GetEdidForMonitorId(const MonitorId: string; var edid: TEDIDRec): Boolean;
 
-function FindEdid(monitor: HMONITOR): Boolean;
+// display path is usually \\.\DISPLAY1
+// returns an empty string, if not found
+// returns MONITOR\XXXYYYY\{guid}\0044 if found
+function DisplayPathToDeviceId(const displayPath: string): string;
+
+function GetEdidForDevicePath(const displayPath: string; var ed: TEDIDRec): Boolean;
+function GetMonitorDevicePath(monitor: HMONITOR): string;
+function GetEdidForMonitor(monitor: HMONITOR; var ed: TEDIDRec): Boolean;
 
 type
   MONITORINFO = record
@@ -67,15 +74,79 @@ function EnumDisplayDevicesA(
 const
   EDD_GET_DEVICE_INTERFACE_NAME = $00000001;
 
+  DISPLAY_DEVICE_ACTIVE         = $00000001;
+  DISPLAY_DEVICE_ATTACHED       = $00000002;
+
 implementation
 
-function FindEdid(monitor: HMONITOR): Boolean;
+function DisplayPathToDeviceId(const displayPath: string): string;
+var
+  i      : integer;
+  dev    : DISPLAY_DEVICEA;
+  devmod : TDeviceMode;
+  flag   : integer;
+  p      : PChar;
+  dsp    : string;
+begin
+  FillChar(dev, sizeof(dev), 0);
+  dev.cb := sizeof(dev);
+  dsp := '';
+
+  i:=0;
+  while EnumDisplayDevicesA(nil, i, @dev, 0) do begin
+    if (dev.StateFlags and DISPLAY_DEVICE_ACTIVE) > 0 then begin
+      dsp := dev.DeviceName;
+      break;
+    end;
+    inc(i);
+  end;
+
+  if (dsp ='') then begin
+    // not found
+    Result := '';
+    Exit;
+  end;
+
+  i := 0;
+  while EnumDisplayDevicesA(PChar(dsp), 0, @dev, 0) do begin
+    if (dev.StateFlags and DISPLAY_DEVICE_ACTIVE) > 0 then begin
+      Result := dev.DeviceID;
+      Exit;
+    end;
+    inc(i);
+  end;
+end;
+
+function GetEdidForDevicePath(const displayPath: string; var ed: TEDIDRec
+  ): Boolean;
+var
+  monDevId: string;
+begin
+  Result := displayPath<>'';
+  if not Result then Exit;
+
+  monDevId := DisplayPathToDeviceId(displayPath);
+  Result := monDevId<>'';
+  if not Result then Exit;
+
+  Result := GetEdidForMonitorId(monDevId, ed);
+end;
+
+function GetEdidForMonitor(monitor: HMONITOR; var ed: TEDIDRec): Boolean;
+begin
+  Result := GetEdidForDevicePath( GetMonitorDevicePath(monitor), ed);
+end;
+
+function GetMonitorDevicePath(monitor: HMONITOR): string;
 var
   mi : MONITORINFOEXA;
 begin
   FillChar(mi, sizeof(mi), 0);
   mi.info.cbSize := sizeof(mi);
-  GetMonitorInfoA(monitor, @mi);
+  if GetMonitorInfoA(monitor, @mi) then
+    Result := mi.szDevice
+  else
+    Result := '';
 end;
 
 function RegReadStr(const hk: HKey; const relativePath: string; const DefaultVal: string = ''): string;
@@ -204,7 +275,7 @@ begin
   Result := monId <> '';
 end;
 
-function GetMonitorDeviceId(const MonitorId: string; var edid: TEDIDRec): Boolean;
+function GetEdidForMonitorId(const MonitorId: string; var edid: TEDIDRec): Boolean;
 var
   hrd, drv: string;
 begin

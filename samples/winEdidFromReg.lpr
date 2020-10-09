@@ -52,17 +52,22 @@ end;
 
 var
   ed : TEDIDRec;
+  m  : HMonitor;
 begin
   //EnumDisplayForPath('');
-  GetIdByMonitorIdAndDriver('MONITOR\ACR0282','{4d36e96e-e325-11ce-bfc1-08002be10318}\0000', ed);
-  writeln(ed.SzH,' ',ed.SzV);
-  GetIdByMonitorIdAndDriver('MONITOR\ACR0282','{4d36e96e-e325-11ce-bfc1-08002be10318}\0001', ed);
-  writeln(ed.SzH,' ',ed.SzV);
-  GetIdByMonitorIdAndDriver('MONITOR\CMN1735','{4d36e96e-e325-11ce-bfc1-08002be10318}\0002', ed);
-  writeln(ed.SzH,' ',ed.SzV);
+  //exit;
+  //GetIdByMonitorIdAndDriver('MONITOR\ACR0282','{4d36e96e-e325-11ce-bfc1-08002be10318}\0000', ed);
+  //writeln(ed.SzH,' ',ed.SzV);
+  //GetIdByMonitorIdAndDriver('MONITOR\ACR0282','{4d36e96e-e325-11ce-bfc1-08002be10318}\0001', ed);
+  //writeln(ed.SzH,' ',ed.SzV);
+  //GetIdByMonitorIdAndDriver('MONITOR\CMN1735','{4d36e96e-e325-11ce-bfc1-08002be10318}\0002', ed);
+  //writeln(ed.SzH,' ',ed.SzV);
   //p.x:=0;
   //p.y:=0;
-  //m :=MonitorFromPoint( Point(0,0), MONITOR_DEFAULTTOPRIMARY);
-  //FindEdid(m);
+  if GetEdidForMonitor(MonitorFromPoint( Point(0,0), MONITOR_DEFAULTTOPRIMARY), ed) then begin
+    writeln(EdidManToStr( ed.ManId));
+    writeln(ed.SzH,' ',ed.SzV);
+  end else
+    writeln('unable to find');
 end.
 
