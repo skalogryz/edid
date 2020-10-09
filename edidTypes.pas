@@ -205,11 +205,11 @@ const
   DISPDESCR_TEXT         = $FE;
   DISPDESCR_SERIALNUM    = $FF;
 
-function EditManToStr(const m: TEDIDMan): string;
+function EdidManToStr(const m: TEDIDMan): string;
 
 implementation
 
-function EditManToStr(const m: TEDIDMan): string;
+function EdidManToStr(const m: TEDIDMan): string;
 const
   base =  Ord('A')-1;
 var
