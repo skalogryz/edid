@@ -224,6 +224,23 @@ begin
   Result[3]:=Chr(le.let3+base);
 end;
 
+function Trim(const ch: array of char): string;
+var
+  i : integer;
+begin
+  i := length(ch)-1;
+  while (i>=0) do begin
+    if not (ch[i] in [#0, #32, #9, #13, #10]) then
+      Break;
+    dec(i);
+  end;
+
+  if (i < 0) then Result := '';
+  inc(i);
+  SetLength(Result, i);
+  Move(ch[0], Result[1], i);
+end;
+
 function EdidGetDisplayName(const m: TEDIDRec): string;
 var
   i : integer;
@@ -232,7 +249,7 @@ begin
     if m.descr[i].disp.zero <> 0 then Continue;
     if m.descr[i].disp.descrType = DISPDESCR_DISPNAME then
     begin
-      Result := m.descr[i].disp.displayText;
+      Result := Trim(m.descr[i].disp.displayText);
       Exit;
     end;
   end;
