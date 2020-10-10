@@ -77,6 +77,21 @@ const
   DISPLAY_DEVICE_ACTIVE         = $00000001;
   DISPLAY_DEVICE_ATTACHED       = $00000002;
 
+type
+  MONITORENUMPROC = function (
+    Arg1: HMONITOR;
+    Arg2: HDC;
+    Arg3: LPRECT;
+    Arg4: LPARAM
+  ): BOOL; stdcall;
+
+function EnumDisplayMonitors(
+  dc       : HDC;
+  lprcClip : PRECT;
+  lpfnEnum : MONITORENUMPROC;
+  dwData   : LPARAM
+): BOOL; stdcall; external 'user32.dll';
+
 implementation
 
 function DisplayPathToDeviceId(const displayPath: string): string;
