@@ -109,7 +109,9 @@ begin
 
   i:=0;
   while EnumDisplayDevicesA(nil, i, @dev, 0) do begin
-    if (dev.StateFlags and DISPLAY_DEVICE_ACTIVE) > 0 then begin
+    if ((dev.StateFlags and DISPLAY_DEVICE_ACTIVE) > 0)
+      and (displayPath = PChar(dev.DeviceName))
+    then begin
       dsp := dev.DeviceName;
       break;
     end;
