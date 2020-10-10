@@ -10,6 +10,7 @@ uses
 type
   TMonitor = class
   public
+    Name       : string;
     Resolution : TSize;
     PhysSizeCm : TSize; // cm
     Frequency  : double;
@@ -50,6 +51,7 @@ begin
     FillChar(devmod, sizeof(devmod), 0);
     devmod.dmSize := sizeof(devmod);
     EnumDisplaySettingsA(PChar(monname), ENUM_CURRENT_SETTINGS, devmod);
+    wm.Name := EdidGetDisplayName(ed);
 
     wm.Resolution.cx := devmod.dmPelsWidth;
     wm.Resolution.cy := devmod.dmPelsHeight;

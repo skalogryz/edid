@@ -206,6 +206,7 @@ const
   DISPDESCR_SERIALNUM    = $FF;
 
 function EdidManToStr(const m: TEDIDMan): string;
+function EdidGetDisplayName(const m: TEDIDRec): string;
 
 implementation
 
@@ -221,6 +222,21 @@ begin
   Result[1]:=Chr(le.let1+base);
   Result[2]:=Chr(le.let2+base);
   Result[3]:=Chr(le.let3+base);
+end;
+
+function EdidGetDisplayName(const m: TEDIDRec): string;
+var
+  i : integer;
+begin
+  for i := low(m.descr) to high(m.descr) do begin
+    if m.descr[i].disp.zero <> 0 then Continue;
+    if m.descr[i].disp.descrType = DISPDESCR_DISPNAME then
+    begin
+      Result := m.descr[i].disp.displayText;
+      Exit;
+    end;
+  end;
+  Result := '';
 end;
 
 end.
