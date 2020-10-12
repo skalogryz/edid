@@ -6,7 +6,7 @@ uses
   {$IFDEF UNIX}{$IFDEF UseCThreads}
   cthreads,
   {$ENDIF}{$ENDIF}
-  Classes, edidMonitorUtils;
+  Classes, edidMonitorUtils, edidTypes;
 
 var
   l : TList;
@@ -22,7 +22,7 @@ begin
       writeln('  ',m.Resolution.cx,'x',m.Resolution.cy,' '
        ,'(Ofs: ',m.Bounds.Left,' ',m.Bounds.Top,') '
        ,'Refreh Rate: ',m.Frequency:0:1,'hz; '
-       ,'Phys Size: ',m.PhysSizeCm.cx,'cm ',m.PhysSizeCm.cy,'cm');
+       ,'Phys Size: ',m.PhysSizeMm.cx/10:0:1,'cm ',m.PhysSizeMm.cy/10:0:1,'cm');
     end;
   finally
     l.free;
