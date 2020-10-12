@@ -12,7 +12,7 @@ type
   public
     Name       : string;
     Resolution : TSize;
-    PhysSizeCm : TSize; // cm
+    PhysSizeMm : TSize; // milimeters
     Frequency  : double;
     Bounds     : TRect;
   end;
@@ -45,8 +45,7 @@ begin
   if (monname <>'') and (GetEdidForDevicePath( monname, ed)) then begin
     wm := TMonitor.Create;
     wm.bounds := mi.info.rcMonitor;
-    wm.PhysSizeCm.cx := ed.SzH;
-    wm.PhysSizeCm.cy := ed.SzV;
+    EdidGetPhysSizeMm(ed, wm.PhysSizeMm.cx, wm.PhysSizeMm.cy);
 
     FillChar(devmod, sizeof(devmod), 0);
     devmod.dmSize := sizeof(devmod);

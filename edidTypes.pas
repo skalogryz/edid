@@ -79,15 +79,53 @@ type
     AspectRatio : 0..3;
   end;
 
+  TEDIDActiveBlank8Bit = packed record
+    Active : byte;
+    Blank  : byte;
+  end;
+
+  TEDIDActiveBlank4Bit = bitpacked record
+    Blank  : 0..15;
+    Active : 0..15;
+  end;
+
+  TEDIDOffsetSync8Bit = packed record
+    Active : byte;
+    Blank  : byte;
+  end;
+
+  TEDIDOffsetSync4Bit = bitpacked record
+    Blank  : 0..15;
+    Active : 0..15;
+  end;
+
+  TEDIDOffsetSync2Bit = bitpacked record
+    VertSync   : 0..3;
+    VertOffset : 0..3;
+    HorzSync   : 0..3;
+    HorzOffset : 0..3;
+  end;
+
+  TEDIDImageSize4Bit = bitpacked record
+    vert  : 0..15;
+    horz  : 0..15;
+  end;
+
   TEDIDDetailedTimeDescr = packed record
     pixelClock : Word; // little endian
-    horzPixels : Byte;
-    horzBlank  : Byte;
-    horz4mbts  : Byte;
-    vertPixels : Byte;
-    vertBlank  : Byte;
-    vert4mbts  : Byte;
-    //tbd:
+    horzAB8    : TEDIDActiveBlank8Bit;
+    horzAB4    : TEDIDActiveBlank4Bit;
+    vertAB8    : TEDIDActiveBlank8Bit;
+    vertAB4    : TEDIDActiveBlank4Bit;
+    horzPS8    : TEDIDOffsetSync8Bit;
+    vertPS4    : TEDIDOffsetSync4Bit;
+    PorchSync2 : TEDIDOffsetSync2Bit;
+    horzMm     : Byte;
+    vertMm     : Byte;
+    imageSize  : TEDIDImageSize4Bit;
+    horzBorder : Byte;
+    vertBorder : Byte;
+    Features   : Byte;
   end;
 
   TEDIDDisplayDescr = packed record
@@ -207,6 +245,7 @@ const
 
 function EdidManToStr(const m: TEDIDMan): string;
 function EdidGetDisplayName(const m: TEDIDRec): string;
+function EdidGetPhysSizeMm(const ed: TEDIDRec; out horzMm, vertMM: Integer): Boolean;
 
 implementation
 
@@ -254,6 +293,27 @@ begin
     end;
   end;
   Result := '';
+end;
+
+function EdidGetPhysSizeMm(const ed: TEDIDRec; out horzMm, vertMM: Integer): Boolean;
+var
+  i : integer;
+begin
+  horzMm := 0;
+  vertMm := 0;
+  for i:=low(ed.descr) to high(ed.descr) do
+    if (ed.descr[i].time.pixelClock>0) then begin
+      horzMm := (ed.descr[i].time.imageSize.horz shl 8) or (ed.descr[i].time.horzMm);
+      vertMm := (ed.descr[i].time.imageSize.vert shl 8) or (ed.descr[i].time.vertMm);
+      break;
+    end;
+
+  if (horzMm = 0) and (vertMm = 0) then begin
+    horzMm := ed.SzH * 10;
+    vertMm := ed.SzV * 10;
+  end;
+
+  Result := (horzMm > 0) and (vertMm > 0)
 end;
 
 end.
