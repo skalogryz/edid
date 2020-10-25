@@ -3,6 +3,7 @@ unit edidMonitorUtils;
 interface
 
 uses
+  Types,
   {$ifdef mswindows}Windows, winEdidUtils,{$endif}
   Classes, SysUtils, edidTypes
   ;
