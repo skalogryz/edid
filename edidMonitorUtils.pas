@@ -4,6 +4,7 @@ interface
 
 uses
   Types,
+  {$ifdef darwin}MacOSAll,{$endif}
   {$ifdef mswindows}Windows, winEdidUtils,{$endif}
   Classes, SysUtils, edidTypes
   ;
@@ -69,6 +70,48 @@ begin
 end;
 {$endif}
 
+{$ifdef darwin}
+function CocoaEnumMonitors(list: TList): Boolean;
+var
+  wm  : TMonitor;
+  dsp : array of CGDirectDisplayID;
+  i   : integer;
+  cnt : UInt32;
+  sz  : CGSize;
+  r   : CGRect;
+  md  : CGDisplayModeRef;
+begin
+  Result := Assigned(list);
+  if not Result then Exit;
+
+  SetLength(dsp, 256);
+  cnt := 0;
+  CGGetActiveDisplayList(length(dsp), @dsp[0], cnt);
+  for i:=0 to Integer(cnt)-1 do begin
+    wm := TMonitor.Create;
+    md := CGDisplayCopyDisplayMode(dsp[i]);
+    try
+      sz := CGDisplayScreenSize(dsp[i]);
+      wm.PhysSizeMm.cx := Round(sz.width);
+      wm.PhysSizeMm.cy := Round(sz.height);
+      r := CGDisplayBounds(dsp[i]);
+      wm.Bounds := Bounds( Round(r.origin.x), Round(r.origin.y),
+        Round(r.size.width), Round(r.size.height));
+      wm.Resolution.cx := Round(r.size.width);
+      wm.Resolution.cy := Round(r.size.height);
+      wm.Frequency := CGDisplayModeGetRefreshRate(md);
+      if wm.Frequency = 0 then
+        wm.Frequency := 60;
+    finally
+      CGDisplayModeRelease(md);
+    end;
+    list.Add(wm);
+    inc(cnt);
+  end;
+  Result := (cnt > 0)
+end;
+{$endif}
+
 function GetSysMonitors(list: TList): Boolean;
 begin
 {$ifdef MSWindows}
@@ -78,6 +121,9 @@ begin
   end;
   Result:=WinEnumMonitors(list);
 {$else}
+  {$ifdef darwin}
+  Result:=CocoaEnumMonitors(list);
+  {$endif}
   Result:=false;
 {$endif}
 end;
